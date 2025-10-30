@@ -135,9 +135,7 @@ fn main() {
         if baud_rates.contains(&baud_rate) {
             baud_rates = vec!(*baud_rate);
         } else {
-            println!("valid baurates are [\
-            1_000_000, 500_000, 250_000, 125_000, 100_000, 83_333, 50_000, 20_000, 10_000\
-            ]");
+            println!("valid baurates are {:?}", baud_rates);
             std::process::exit(1);
         }
     }
@@ -157,6 +155,7 @@ fn main() {
         },
         other => {
             println!("Device not implemented ({})", other);
+            std::process::exit(1);
         },
     };
 
@@ -174,7 +173,6 @@ fn main() {
                         r.baudrate, r.nbr_tq, r.brp, r.sample_point * 100.0,
                         r.sample_point_error * 100.0, r.ts1, r.ts2, r.btr
                     ),
-                    _ => (),
                 }
             },
         }
