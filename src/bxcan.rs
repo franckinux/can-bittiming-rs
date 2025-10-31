@@ -49,7 +49,7 @@ impl Serialize for BxcanTiming {
 
         // hex numbers are not supported in json format, so we add a string field (thanks ChatGPT)
         // field computed automatically "0x..."
-        let btr_hex = format!("0x{:X}", self.btr);
+        let btr_hex = format!("0x{:x}", self.btr);
         s.serialize_field("btr_hex", &btr_hex)?;
 
         s.end()
@@ -58,13 +58,13 @@ impl Serialize for BxcanTiming {
 
 
 impl BxcanTiming {
-    pub fn timings(clk: u32, br: u32, sp: f64) -> Vec<Self> {
+    pub fn timings(clk: u32, br: u32, sp: f64, sjw: u32) -> Vec<Self> {
         let fclk = clk as f64;
         let bit_rate = br as f64;
         let nominal_bit_time: f64 = 1.0 / bit_rate;
         // println!("nominal bit time: {}", nominal_bit_time);
 
-        // compute valid range of BRP
+        // compute valid range of brp
         let max_tq: f64 = nominal_bit_time / 3.0;
         // println!("maximal time quantum: {}", max_tq);
         let min_tq: f64 = nominal_bit_time / 25.0;
@@ -90,7 +90,7 @@ impl BxcanTiming {
                 let f_error = ((bit_rate - real_freq) / bit_rate).abs();
 
                 if f_error < 0.001 && sp_error < 0.05 {
-                    let btr: u32 = ((ts2 - 1) << 20) + ((ts1 - 1) << 16) + brp - 1;
+                    let btr: u32 = ((sjw - 1) << 24) + ((ts2 - 1) << 20) + ((ts1 - 1) << 16) + brp - 1;
 
                     let result = BxcanTiming {
                         baudrate: br,

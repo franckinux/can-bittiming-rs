@@ -50,6 +50,15 @@ fn main() {
             .long("output-format")
             .action(ArgAction::Set)
             .help("Output format ['json']")
+		)
+        .arg(
+            Arg::new("sjw")
+            .short('j')
+            .long("sjw")
+            .action(ArgAction::Set)
+            .value_parser(clap::value_parser!(u32))
+            .default_value("1")
+            .help("Sync jump width (default: 1)")
         ).arg_required_else_help(true)
         .get_matches();
 
@@ -61,6 +70,9 @@ fn main() {
     // optional arguments
     let baud_rate = matches.get_one::<u32>("baudrate");
     let format = matches.get_one::<String>("output-format");
+
+    // optional arguments with default value
+    let sjw = *matches.get_one::<u32>("sjw").unwrap();
 
     let mut baud_rates = vec!(
         1_000_000, 500_000, 250_000, 125_000, 100_000, 83_333, 50_000, 20_000, 10_000
@@ -84,7 +96,7 @@ fn main() {
     match device.as_str() {
         "bxcan" => {
             for baud_rate in baud_rates {
-                results.append(&mut BxcanTiming::timings(frequency, baud_rate, spp));
+                results.append(&mut BxcanTiming::timings(frequency, baud_rate, spp, sjw));
             };
         },
         other => {
