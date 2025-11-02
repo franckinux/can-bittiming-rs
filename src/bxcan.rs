@@ -43,8 +43,8 @@ impl Serialize for BxcanTiming {
         s.serialize_field("ts2", &self.ts2)?;
         s.serialize_field("btr", &self.btr)?;
 
-        // floats are rounded to 3 decimals
-        s.serialize_field("sample_point", &((self.sample_point * 1000.0).round() / 1000.0))?;
+        // floats are rounded
+        s.serialize_field("sample_point", &((self.sample_point * 100.0).round() / 100.0))?;
         s.serialize_field("sample_point_error", &((self.sample_point_error * 1000.0).round() / 1000.0))?;
 
         // hex numbers are not supported in json format, so we add a string field (thanks ChatGPT)
