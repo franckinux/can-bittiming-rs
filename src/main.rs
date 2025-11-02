@@ -2,10 +2,24 @@ mod bxcan;
 
 use std::process;
 
-use clap::{Arg, ArgAction, command};
+use clap::{Arg, ArgAction,
+    builder::{EnumValueParser, PossibleValuesParser, TypedValueParser},
+    command, value_parser, ValueEnum};
 use serde_json;
 
 use bxcan::BxcanTiming;
+
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+enum Device {
+    Bxcan,
+}
+
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+enum OutputFormat {
+    Json,
+}
 
 
 fn main() {
@@ -14,16 +28,16 @@ fn main() {
             Arg::new("device")
             .short('d')
             .long("device")
-            .action(ArgAction::Set)
+            .value_parser(EnumValueParser::<Device>::new())
             .required(true)
-            .help("The devices the timings can be computed ['bxcan']")
+            .help("The devices the timings can be computed for")
 		)
         .arg(
             Arg::new("frequency")
             .short('f')
             .long("frequency")
             .action(ArgAction::Set)
-            .value_parser(clap::value_parser!(u32))
+            .value_parser(value_parser!(u32))
             .required(true)
             .help("Frequency at the entry of the prescaler (Hz)")
 		)
@@ -40,7 +54,7 @@ fn main() {
             .short('s')
             .long("sample-point")
             .action(ArgAction::Set)
-            .value_parser(clap::value_parser!(f64))
+            .value_parser(value_parser!(f64))
             .required(true)
             .help("Sample point position (%)")
         )
@@ -49,27 +63,29 @@ fn main() {
             .short('o')
             .long("output-format")
             .action(ArgAction::Set)
-            .help("Output format ['json']")
+            .value_parser(EnumValueParser::<OutputFormat>::new())
+            .required(false)
+            .help("Output format")
 		)
         .arg(
             Arg::new("sjw")
             .short('j')
             .long("sjw")
             .action(ArgAction::Set)
-            .value_parser(clap::value_parser!(u32))
+            .value_parser(value_parser!(u32))
             .default_value("1")
-            .help("Sync jump width (default: 1)")
+            .help("Sync jump width")
         ).arg_required_else_help(true)
         .get_matches();
 
     // required arguments
-    let device = matches.get_one::<String>("device").unwrap();
+    let device = matches.get_one::<Device>("device").unwrap();
     let frequency = *matches.get_one::<u32>("frequency").unwrap();
     let sample_point_position = *matches.get_one::<f64>("sample-point-position").unwrap();
 
     // optional arguments
     let baud_rate = matches.get_one::<u32>("baudrate");
-    let format = matches.get_one::<String>("output-format");
+    let format = matches.get_one::<OutputFormat>("output-format");
 
     // optional arguments with default value
     let sjw = *matches.get_one::<u32>("sjw").unwrap();
@@ -81,7 +97,7 @@ fn main() {
         if baud_rates.contains(&baud_rate) {
             baud_rates = vec!(*baud_rate);
         } else {
-            eprintln!("Valid baudrates are {:?}", baud_rates);
+            eprintln!("Possible baudrates: {:?}", baud_rates);
             process::exit(1);
         }
     }
@@ -93,25 +109,17 @@ fn main() {
     let spp = sample_point_position / 100.0;
 
     let mut results = vec!();
-    match device.as_str() {
-        "bxcan" => {
+    match device {
+        Device::Bxcan => {
             for baud_rate in baud_rates {
                 results.append(&mut BxcanTiming::timings(frequency, baud_rate, spp, sjw));
             };
         },
-        other => {
-            eprintln!("Device not implemented ({})", other);
-            process::exit(1);
-        },
     };
 
     match format {
-        Some(format) => match format.as_str() {
-            "json" => println!("{}", serde_json::to_string_pretty(&results).unwrap()),
-            _ => {
-                eprintln!("Unknown format");
-                process::exit(1);
-            },
+        Some(format) => match format {
+            OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&results).unwrap()),
         },
         None => for r in &results {
             println!("{}", r);
