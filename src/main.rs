@@ -3,7 +3,7 @@ mod bxcan;
 use std::process;
 
 use clap::{Arg, ArgAction,
-    builder::{EnumValueParser, PossibleValuesParser, TypedValueParser},
+    builder::EnumValueParser,
     command, value_parser, ValueEnum};
 use serde_json;
 
