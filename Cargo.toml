@@ -2,8 +2,12 @@
 name = "can-bittiming-rs"
 version = "0.1.0"
 edition = "2024"
+authors = ["Franck Barbenoire <contact@franck-barbenoire.fr>"]
 description = "Computes the value of BTR (register bit timing register) of a can device."
+readme = "README.md"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/franckinux/can-bittiming-rs"
+keywords = ["can", "cli", "embedded", "tool"]
 
 [dependencies]
 clap = { version = "4.5.53", features = ["cargo", "derive"]}
